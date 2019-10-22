@@ -1,12 +1,13 @@
 {
   "name": "@xhmm/utils",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Contains different util functions.",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "util"
