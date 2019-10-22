@@ -14,10 +14,15 @@ export function assertType(receivedValue, expectedType): void|never {
     );
 }
 
+// null and undefined will not be included
 export function objectToQS(obj?: Record<string, any>): string {
   if (obj === undefined) return "";
   const str = Object.keys(obj).reduce((acc, cur) => {
-    const value = typeof obj[cur] === "string" ? obj[cur] : obj[cur].toString();
+    let value = obj[cur];
+    const type = getType(value);
+    if (['undefined', 'null'].includes(type)) return acc;
+    if (type === 'string') value = value;
+    else value = JSON.stringify(obj[cur]);
     acc += `&${cur}=${encodeURIComponent(value)}`;
     return acc;
   }, "");
