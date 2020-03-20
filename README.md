@@ -27,9 +27,10 @@
         - `AliOSS_SECRET`
         - `AliOSS_BUCKET`
         - `AliOSS_REGION`
-        - (optional) `AliOSS_DIR` // 存放目录 (不以 `/` 开头但以 `/` 结尾)
-        - (optional) `AliOSS_UPLOAD_HOST` // 上传地址
+        - `AliOSS_PUBLIC_HOST` // 公网地址 (会替换掉上传后url的域名)
+        - `AliOSS_PRIVATE_HOST` // 内网地址 (用来上传)
         - (optional) `AliOSS_TIMEOUT`
+        - (optional) `AliOSS_DIR` // 存放目录 (**不以 `/` 开头但以 `/` 结尾**)
     
     当时有 `DingDingBot` 时，需要：
     - 提供以下环境变量：

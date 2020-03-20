@@ -1,5 +1,6 @@
 import { Readable } from "stream";
 import * as Oss from "ali-oss";
+import OSS = require("ali-oss");
 
 export class AliOSS {
   static oss = new Oss({
@@ -7,9 +8,7 @@ export class AliOSS {
     accessKeySecret: process.env.AliOSS_SECRET!,
     bucket: process.env.AliOSS_BUCKET!,
     region: process.env.AliOSS_REGION!,
-    ...(process.env.AliOSS_UPLOAD_HOST && {
-      endpoint: process.env.AliOSS_UPLOAD_HOST
-    }),
+    endpoint: process.env.AliOSS_PRIVATE_HOST,
     ...(process.env.AliOSS_TIMEOUT && { timeout: process.env.AliOSS_TIMEOUT })
   });
   static dir = process.env.AliOSS_DIR ?? "";
@@ -20,13 +19,13 @@ export class AliOSS {
   ): Promise<{ ok: false } | { ok: true; url: string }> {
     try {
       const ret = (await AliOSS.oss.putStream(
-        `${AliOSS.dir ? AliOSS.dir + "/" : ""}${name}`,
+        `${AliOSS.dir}${name}`,
         stream
       )) as any;
       if (ret.res.status === 200) {
         return {
           ok: true,
-          url: ret.url
+          url: AliOSS.replaceUrl(ret.url)
         };
       } else {
         console.error(`素材上传至ali-oss失败，返回值是非200：`);
@@ -55,5 +54,23 @@ export class AliOSS {
       console.error(result);
       return false;
     }
+  }
+
+  static signature(
+    baseName: string,
+    expireSeconds: number,
+    options?: Omit<OSS.SignatureUrlOptions, "expires">
+  ): string {
+    const url = AliOSS.oss.signatureUrl(AliOSS.dir + baseName, {
+      ...options,
+      expires: expireSeconds
+    });
+    return AliOSS.replaceUrl(url);
+  }
+
+  private static replaceUrl(url: string): string {
+    const urlObj = new URL(url);
+    urlObj.hostname = process.env.AliOSS_PUBLIC_HOST!;
+    return urlObj.toString();
   }
 }
