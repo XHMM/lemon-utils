@@ -2,6 +2,12 @@ import nodeFetch from 'node-fetch';
 
 const url: string = process.env.DING_WEBHOOK!;
 
+/*
+* 错误码：
+* 101002 消息内容过长
+*
+* */
+
 export class DingDingBot {
   private static async fetchBase(
     json: Record<string, any>
