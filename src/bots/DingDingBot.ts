@@ -1,4 +1,3 @@
-import nodeFetch from 'node-fetch';
 
 const url: string = process.env.DING_WEBHOOK!;
 
@@ -15,6 +14,10 @@ export class DingDingBot {
     errcode: number;
     errmsg: string;
   }> {
+    const nodeFetch = require('node-fetch');
+    if(!nodeFetch)
+      throw new Error("Did you forget to run 'npm i node-fetch' ?");
+
     return await nodeFetch(url, {
       method: 'POST',
       headers: {
@@ -40,6 +43,7 @@ export class DingDingBot {
       },
     });
   }
+
   @decorateError
   static async sendMarkdown(
     key: string,

@@ -1,22 +1,31 @@
 import { Readable } from "stream";
-import * as Oss from "ali-oss";
-import OSS = require("ali-oss");
+import * as OSS from 'ali-oss';
 
 export class AliOSS {
-  static oss = new Oss({
-    accessKeyId: process.env.AliOSS_KEY!,
-    accessKeySecret: process.env.AliOSS_SECRET!,
-    bucket: process.env.AliOSS_BUCKET!,
-    region: process.env.AliOSS_REGION!,
-    endpoint: process.env.AliOSS_PRIVATE_HOST,
-    ...(process.env.AliOSS_TIMEOUT && { timeout: process.env.AliOSS_TIMEOUT })
-  });
+  static oss;
   static dir = process.env.AliOSS_DIR ?? "";
+
+  static init() {
+    const oss = require('ali-oss');
+    if(!oss)
+      throw new Error("Did forget to run 'npm install ali-oss' ?")
+
+    AliOSS.oss = new oss({
+      accessKeyId: process.env.AliOSS_KEY!,
+      accessKeySecret: process.env.AliOSS_SECRET!,
+      bucket: process.env.AliOSS_BUCKET!,
+      region: process.env.AliOSS_REGION!,
+      endpoint: process.env.AliOSS_PRIVATE_HOST,
+      ...(process.env.AliOSS_TIMEOUT && { timeout: process.env.AliOSS_TIMEOUT })
+    });
+  }
 
   static async putStream(
     name: string,
     stream: Readable
   ): Promise<{ ok: false } | { ok: true; url: string }> {
+    AliOSS.check()
+
     try {
       const ret = (await AliOSS.oss.putStream(
         `${AliOSS.dir}${name}`,
@@ -44,6 +53,8 @@ export class AliOSS {
   }
 
   static async delete(name: string): Promise<boolean> {
+    AliOSS.check()
+
     const result = await AliOSS.oss.delete(AliOSS.dir + name);
     // 额，删除成功了但result.res.status是204，按理不应该是200么...
     // @ts-ignore
@@ -61,11 +72,19 @@ export class AliOSS {
     expireSeconds: number,
     options?: Omit<OSS.SignatureUrlOptions, "expires">
   ): string {
+    AliOSS.check()
+
     const url = AliOSS.oss.signatureUrl(AliOSS.dir + baseName, {
       ...options,
       expires: expireSeconds
     });
     return AliOSS.replaceUrl(url);
+  }
+
+  private static check() {
+    if(!AliOSS.oss) {
+      throw new Error("Did you forget to call AliOSS.init() ?")
+    }
   }
 
   private static replaceUrl(url: string): string {
